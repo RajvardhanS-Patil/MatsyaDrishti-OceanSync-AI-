@@ -4,6 +4,7 @@ import {
   Shield,
   Globe,
   BrainCircuit,
+  Thermometer,
   FileBarChart,
   type LucideIcon,
 } from "lucide-react";
@@ -20,6 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Authority Portal", href: "/authority", icon: Shield },
   { label: "Digital Twin", href: "/digital-twin", icon: Globe },
   { label: "AI Center", href: "/ai-center", icon: BrainCircuit },
+  { label: "Climate", href: "/climate", icon: Thermometer },
   { label: "Reports", href: "/reports", icon: FileBarChart },
 ];
 
