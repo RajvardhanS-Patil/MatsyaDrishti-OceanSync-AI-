@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { PageLayout } from "@/components/layout/page-layout";
 
 export const metadata: Metadata = {
   title: "MatsyaDrishti | OceanSync AI — Marine Intelligence Platform",
@@ -34,9 +33,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark h-full antialiased">
-      <body className="min-h-full">
-        <PageLayout>{children}</PageLayout>
-      </body>
+      <body className="min-h-full">{children}</body>
     </html>
   );
 }
+

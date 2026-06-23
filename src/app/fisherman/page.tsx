@@ -1,19 +1,36 @@
-import { ComingSoon } from "@/components/ui/coming-soon";
-import { Ship } from "lucide-react";
-import type { Metadata } from "next";
+"use client";
 
-export const metadata: Metadata = {
-  title: "Fisherman Portal | MatsyaDrishti",
-  description:
-    "AI-powered fishing intelligence — sustainable fishing zones, catch predictions, and route optimization for fishing communities.",
-};
+import {
+  FishermanSidebar,
+  OceanWorkspace,
+  IntelligencePanel,
+  AlertStrip,
+  StatusBar,
+} from "@/components/fisherman";
+import { Navbar } from "@/components/layout/navbar";
 
 export default function FishermanPage() {
   return (
-    <ComingSoon
-      title="Fisherman Portal"
-      description="Your AI-powered fishing intelligence hub. Get real-time sustainable zone predictions, catch forecasts, route optimization, and weather alerts — all tailored for fishing communities."
-      icon={<Ship className="h-10 w-10 text-primary" />}
-    />
+    <div className="h-screen overflow-hidden bg-surface">
+      {/* Reuse top navbar */}
+      <Navbar />
+
+      {/* Left Sidebar */}
+      <FishermanSidebar />
+
+      {/* Center Ocean Workspace */}
+      <main className="fixed inset-0 pt-16 pl-[280px] pr-[300px] pb-10">
+        <div className="relative h-full w-full">
+          <OceanWorkspace />
+          <AlertStrip />
+        </div>
+      </main>
+
+      {/* Right Intelligence Panel */}
+      <IntelligencePanel />
+
+      {/* Bottom Status Bar */}
+      <StatusBar />
+    </div>
   );
 }

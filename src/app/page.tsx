@@ -1,5 +1,6 @@
 "use client";
 
+import { PageLayout } from "@/components/layout/page-layout";
 import {
   HeroSection,
   ProblemSection,
@@ -10,12 +11,12 @@ import {
 
 export default function LandingPage() {
   return (
-    <>
+    <PageLayout>
       <HeroSection />
       <ProblemSection />
       <FeaturesSection />
       <ArchitectureSection />
       <VisionSection />
-    </>
+    </PageLayout>
   );
 }
