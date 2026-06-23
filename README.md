@@ -93,8 +93,24 @@ npm install
 
 ## 11. Local Setup
 
+### Step 1: Configuration (.env.local)
+Create a `.env.local` file in the root directory (one is already prepared with configuration from the linked project `trhrgmydzjtbjzbtipfx`):
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+```
+
+### Step 2: Database Migration & Schema
+Apply the database schema and seed data located at [20260624000000_matsya_init.sql](file:///home/deu/Coding%20Repos/MatsyaDrishti-OceanSync-AI-/supabase/migrations/20260624000000_matsya_init.sql) to your Supabase project:
+* **Option A (Dashboard):** Copy the SQL script and execute it in the **SQL Editor** of the Supabase Console.
+* **Option B (CLI):** If you are authenticated via the Supabase CLI, link your project and apply migrations:
+  ```bash
+  npx supabase db push
+  ```
+
+### Step 3: Run the Development Server
 ```bash
-# Start the development server
 npm run dev
 ```
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result. 
@@ -124,7 +140,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## 13. Future Scope
 * **Real-time Mapbox GL Integration:** Moving from conceptual 4D canvas to true geospatial rendering.
-* **Supabase Integration:** Live webhook feeds for actual AIS vessel data and INCOIS API endpoints.
+* **Real-time Data Ingestion:** Automating data pipelines from live INCOIS satellite telemetry and molecular biological eDNA databases into Supabase.
 * **Mobile-Native App:** Field application for fishermen with offline-first capabilities.
 * **Edge Computing Nodes:** Deploying ML models directly to offshore sensor buoys for reduced latency.
 

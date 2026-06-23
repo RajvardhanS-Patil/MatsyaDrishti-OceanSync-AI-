@@ -151,7 +151,7 @@ export function LeftIntelPanel() {
         <div className="mt-4">
           <span className="font-label-caps text-[9px] text-on-surface-variant mb-1.5 block">INTELLIGENCE OUTPUT</span>
           <div className="border-l-2 border-primary py-1.5 pl-3">
-            <p className="text-primary text-[12px] italic leading-snug">"{AI_RECOMMENDATION}"</p>
+            <p className="text-primary text-[12px] italic leading-snug">&ldquo;{AI_RECOMMENDATION}&rdquo;</p>
           </div>
         </div>
 

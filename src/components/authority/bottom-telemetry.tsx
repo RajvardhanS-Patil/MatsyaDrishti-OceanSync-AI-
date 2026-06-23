@@ -56,11 +56,22 @@ const getDynamicIcon = (title: string, type?: string) => {
   return AlertTriangle;
 };
 
+interface UnifiedIncident {
+  id: string;
+  title: string;
+  severity: "critical" | "high" | "moderate" | "low";
+  type?: string;
+  created_at?: string;
+  time?: string;
+  description?: string;
+  location?: string;
+}
+
 export function BottomTelemetry() {
   const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts();
   
   // Fallback to mock data if no live data is available
-  const activeIncidents = alertsData || INCIDENTS;
+  const activeIncidents = (alertsData || INCIDENTS) as UnifiedIncident[];
   return (
     <div className="flex gap-3 h-full min-h-0">
       {/* ── Vessel Telemetry Feed ────────── */}
@@ -120,7 +131,7 @@ export function BottomTelemetry() {
           </div>
         ) : (
           <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin">
-            {activeIncidents.map((inc: any, i: number) => {
+            {activeIncidents.map((inc, i) => {
               const Icon = getDynamicIcon(inc.title, inc.type);
               const colors = severityColor[inc.severity as keyof typeof severityColor] || severityColor.low;
               const displayTime = inc.created_at ? getRelativeTime(inc.created_at) : inc.time;
