@@ -2,7 +2,8 @@
 
 import { motion } from "framer-motion";
 import { VESSEL_FEED, INCIDENTS } from "@/lib/authority-data";
-import { AlertTriangle, Anchor, CloudLightning, Fish, ShieldAlert, Thermometer, Ship, type LucideIcon } from "lucide-react";
+import { AlertTriangle, Anchor, CloudLightning, Fish, ShieldAlert, Thermometer, Ship, type LucideIcon, Zap } from "lucide-react";
+import { useAlerts } from "@/hooks/use-alerts";
 
 const incidentIcons: Record<string, LucideIcon> = {
   weather: CloudLightning,
@@ -32,7 +33,34 @@ const activityColor = {
   drifting: "bg-status-warning",
 };
 
+const getRelativeTime = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const now = new Date();
+  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+  
+  if (diffInMinutes < 1) return "Just now";
+  if (diffInMinutes < 60) return `${diffInMinutes} min ago`;
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  if (diffInHours < 24) return `${diffInHours} hr ago`;
+  const diffInDays = Math.floor(diffInHours / 24);
+  return `${diffInDays} days ago`;
+};
+
+const getDynamicIcon = (title: string, type?: string) => {
+  if (type && incidentIcons[type]) return incidentIcons[type];
+  const t = title.toLowerCase();
+  if (t.includes("weather") || t.includes("cyclone") || t.includes("storm")) return CloudLightning;
+  if (t.includes("coral") || t.includes("temp")) return Thermometer;
+  if (t.includes("illegal") || t.includes("vessel") || t.includes("unregistered")) return ShieldAlert;
+  if (t.includes("biodiversity") || t.includes("fish") || t.includes("population")) return Fish;
+  return AlertTriangle;
+};
+
 export function BottomTelemetry() {
+  const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts();
+  
+  // Fallback to mock data if no live data is available
+  const activeIncidents = alertsData || INCIDENTS;
   return (
     <div className="flex gap-3 h-full min-h-0">
       {/* ── Vessel Telemetry Feed ────────── */}
@@ -71,34 +99,52 @@ export function BottomTelemetry() {
           <h3 className="font-label-caps text-on-surface-variant text-[10px] flex items-center gap-1.5">
             <AlertTriangle className="h-3.5 w-3.5" /> LIVE INCIDENTS
           </h3>
-          <span className="font-label-caps text-[9px] text-status-critical flex items-center gap-1">
-            <motion.span className="h-1.5 w-1.5 rounded-full bg-status-critical"
-              animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }} />
-            {INCIDENTS.length}
-          </span>
+          {!alertsLoading && !alertsError && (
+            <span className="font-label-caps text-[9px] text-status-critical flex items-center gap-1">
+              <motion.span className="h-1.5 w-1.5 rounded-full bg-status-critical"
+                animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }} />
+              {activeIncidents.length}
+            </span>
+          )}
         </div>
-        <div className="flex-1 overflow-y-auto space-y-1.5">
-          {INCIDENTS.map((inc, i) => {
-            const Icon = incidentIcons[inc.type] || AlertTriangle;
-            const colors = severityColor[inc.severity];
-            return (
-              <motion.div key={inc.id}
-                className={`flex items-start gap-2.5 rounded border p-2 ${colors}`}
-                initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: i * 0.1 }}
-              >
-                <Icon className="h-3.5 w-3.5 mt-0.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[10px] font-medium leading-tight">{inc.title}</p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[8px] opacity-60" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{inc.location}</span>
-                    <span className="text-[8px] opacity-40">{inc.time}</span>
+        
+        {alertsLoading ? (
+          <div className="flex-1 flex flex-col items-center justify-center gap-4">
+             <div className="h-6 w-6 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+             <span className="text-primary/50 text-[10px] font-mono animate-pulse">[FETCHING ALERTS...]</span>
+          </div>
+        ) : alertsError ? (
+          <div className="flex-1 flex flex-col items-center justify-center text-status-critical">
+             <Zap className="h-5 w-5 mb-2 opacity-50" />
+             <span className="text-[10px] font-mono">CONNECTION LOST</span>
+          </div>
+        ) : (
+          <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin">
+            {activeIncidents.map((inc: any, i: number) => {
+              const Icon = getDynamicIcon(inc.title, inc.type);
+              const colors = severityColor[inc.severity as keyof typeof severityColor] || severityColor.low;
+              const displayTime = inc.created_at ? getRelativeTime(inc.created_at) : inc.time;
+              const displayLocation = inc.description || inc.location;
+              
+              return (
+                <motion.div key={inc.id}
+                  className={`flex items-start gap-2.5 rounded border p-2 ${colors}`}
+                  initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <Icon className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-medium leading-tight">{inc.title}</p>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[8px] opacity-60 truncate max-w-[180px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{displayLocation}</span>
+                      <span className="text-[8px] opacity-40 whitespace-nowrap">{displayTime}</span>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </div>
   );
