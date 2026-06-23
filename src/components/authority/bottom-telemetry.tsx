@@ -1,0 +1,105 @@
+"use client";
+
+import { motion } from "framer-motion";
+import { VESSEL_FEED, INCIDENTS } from "@/lib/authority-data";
+import { AlertTriangle, Anchor, CloudLightning, Fish, ShieldAlert, Thermometer, Ship, type LucideIcon } from "lucide-react";
+
+const incidentIcons: Record<string, LucideIcon> = {
+  weather: CloudLightning,
+  coral: Thermometer,
+  illegal: ShieldAlert,
+  biodiversity: Fish,
+  stress: AlertTriangle,
+};
+
+const severityColor = {
+  critical: "text-status-critical bg-status-critical/15 border-status-critical/30",
+  high: "text-status-warning bg-status-warning/10 border-status-warning/30",
+  moderate: "text-status-info bg-status-info/10 border-status-info/30",
+  low: "text-on-surface-variant bg-surface-container-highest border-border-glow",
+};
+
+const complianceColor = {
+  compliant: "text-primary",
+  warning: "text-status-warning",
+  violation: "text-status-critical",
+};
+
+const activityColor = {
+  fishing: "bg-primary",
+  transit: "bg-status-info",
+  anchored: "bg-on-surface-variant/40",
+  drifting: "bg-status-warning",
+};
+
+export function BottomTelemetry() {
+  return (
+    <div className="flex gap-3 h-full min-h-0">
+      {/* ── Vessel Telemetry Feed ────────── */}
+      <div className="flex-1 glass-panel rounded-lg p-3 flex flex-col min-w-0">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-label-caps text-on-surface-variant text-[10px] flex items-center gap-1.5">
+            <Ship className="h-3.5 w-3.5" /> VESSEL TELEMETRY — {VESSEL_FEED.length} ACTIVE
+          </h3>
+          <motion.span className="h-1.5 w-1.5 rounded-full bg-primary"
+            animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }} />
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-1.5 scrollbar-thin">
+          {VESSEL_FEED.map((v, i) => (
+            <motion.div key={v.id}
+              className="flex items-center gap-3 rounded border border-border-glow bg-surface-container-low p-2 text-[10px]"
+              initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: i * 0.08 }}
+            >
+              <motion.span className={`h-2 w-2 rounded-full shrink-0 ${activityColor[v.activity]}`}
+                animate={v.activity === "drifting" ? { opacity: [1, 0.3, 1] } : {}}
+                transition={{ duration: 1, repeat: Infinity }} />
+              <span className="text-on-surface font-medium w-24 truncate">{v.name}</span>
+              <span className="text-on-surface-variant/60 w-16" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{v.lat}</span>
+              <span className="text-on-surface-variant/60 w-16" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{v.lon}</span>
+              <span className="text-on-surface-variant/60 w-10" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{v.speed}</span>
+              <span className="font-label-caps text-[8px] text-on-surface-variant/50 w-14">{v.activity}</span>
+              <span className={`font-label-caps text-[8px] ml-auto ${complianceColor[v.compliance]}`}>{v.compliance}</span>
+            </motion.div>
+          ))}
+        </div>
+      </div>
+
+      {/* ── Live Incident Feed ───────────── */}
+      <div className="w-[340px] glass-panel rounded-lg p-3 flex flex-col shrink-0">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="font-label-caps text-on-surface-variant text-[10px] flex items-center gap-1.5">
+            <AlertTriangle className="h-3.5 w-3.5" /> LIVE INCIDENTS
+          </h3>
+          <span className="font-label-caps text-[9px] text-status-critical flex items-center gap-1">
+            <motion.span className="h-1.5 w-1.5 rounded-full bg-status-critical"
+              animate={{ opacity: [1, 0, 1] }} transition={{ duration: 1, repeat: Infinity }} />
+            {INCIDENTS.length}
+          </span>
+        </div>
+        <div className="flex-1 overflow-y-auto space-y-1.5">
+          {INCIDENTS.map((inc, i) => {
+            const Icon = incidentIcons[inc.type] || AlertTriangle;
+            const colors = severityColor[inc.severity];
+            return (
+              <motion.div key={inc.id}
+                className={`flex items-start gap-2.5 rounded border p-2 ${colors}`}
+                initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+              >
+                <Icon className="h-3.5 w-3.5 mt-0.5 shrink-0" />
+                <div className="min-w-0">
+                  <p className="text-[10px] font-medium leading-tight">{inc.title}</p>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <span className="text-[8px] opacity-60" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{inc.location}</span>
+                    <span className="text-[8px] opacity-40">{inc.time}</span>
+                  </div>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
