@@ -169,15 +169,22 @@ export function TwinCanvas({ layers, timeValue }: TwinCanvasProps) {
       )}
 
       {/* Atmospheric particles */}
-      {[...Array(20)].map((_, i) => (
-        <motion.div
-          key={`particle-${i}`}
-          className="absolute h-0.5 w-0.5 rounded-full bg-primary/30"
-          style={{ left: `${Math.random() * 100}%`, top: `${Math.random() * 100}%` }}
-          animate={{ y: [0, -30, 0], opacity: [0, 0.6, 0] }}
-          transition={{ duration: 4 + Math.random() * 4, repeat: Infinity, delay: Math.random() * 5 }}
-        />
-      ))}
+      {[...Array(20)].map((_, i) => {
+        const left = (i * 37) % 100;
+        const top = (i * 23) % 100;
+        const duration = 4 + (i % 4);
+        const delay = (i % 5);
+        
+        return (
+          <motion.div
+            key={`particle-${i}`}
+            className="absolute h-0.5 w-0.5 rounded-full bg-primary/30"
+            style={{ left: `${left}%`, top: `${top}%` }}
+            animate={{ y: [0, -30, 0], opacity: [0, 0.6, 0] }}
+            transition={{ duration, repeat: Infinity, delay }}
+          />
+        );
+      })}
 
       {/* Edge vignette */}
       <div className="pointer-events-none absolute inset-0" style={{
