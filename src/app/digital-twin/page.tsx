@@ -39,7 +39,7 @@ export default function DigitalTwinPage() {
 
         {/* Right intelligence panel */}
         <div className="absolute right-5 top-20 bottom-14 z-10 w-[280px]">
-          <RightIntelPanel />
+          <RightIntelPanel timeValue={timeValue} />
         </div>
 
         {/* Bottom sensor bar */}
