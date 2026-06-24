@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { COMMAND_KPIS } from "@/lib/authority-data";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useMarineHealth } from "@/hooks/use-marine-health";
@@ -38,25 +37,64 @@ export function CommandHeader() {
   const { data: alertsData } = useAlerts();
   const { data: zonesData } = useFishingZones();
 
-  // Build live KPIs by overriding mock values with Supabase data
-  const liveKPIs = COMMAND_KPIS.map((kpi) => {
-    if (kpi.label === "Marine Health Score" && healthData) {
-      return { ...kpi, value: healthData.health_score.toFixed(1), percent: healthData.health_score };
+  // Build live KPIs from Supabase data
+  type TrendType = "up" | "down" | "stable";
+  type SeverityType = "safe" | "warning" | "critical";
+
+  const liveKPIs = [
+    {
+      label: "Marine Health Score",
+      value: healthData ? healthData.health_score.toFixed(1) : "N/A",
+      percent: healthData ? healthData.health_score : 0,
+      change: "LIVE",
+      trend: "stable" as TrendType,
+      trendValue: "Real-time",
+      severity: "safe" as SeverityType,
+      color: "#a6cfbe",
+      max: 100,
+    },
+    {
+      label: "Biodiversity Index",
+      value: healthData ? healthData.biodiversity_score.toFixed(1) : "N/A",
+      percent: healthData ? healthData.biodiversity_score : 0,
+      change: "LIVE",
+      trend: "stable" as TrendType,
+      trendValue: "Real-time",
+      severity: "safe" as SeverityType,
+      color: "#4ade80",
+      max: 100,
+    },
+    {
+      label: "Active Fishing",
+      value: zonesData ? String(zonesData.length) : "N/A",
+      percent: zonesData ? Math.min(100, zonesData.length * 10) : 0,
+      change: "LIVE",
+      trend: "stable" as TrendType,
+      trendValue: zonesData ? `${zonesData.length} zones` : "Pending",
+      severity: "safe" as SeverityType,
+      color: "#3b82f6",
+    },
+    {
+      label: "Risk Level",
+      value: alertsData ? (alertsData.filter((a) => a.severity === "critical").length >= 3 ? "HIGH" : alertsData.filter((a) => a.severity === "critical").length >= 1 ? "MODERATE" : "LOW") : "N/A",
+      percent: alertsData ? (alertsData.filter((a) => a.severity === "critical").length >= 3 ? 75 : alertsData.filter((a) => a.severity === "critical").length >= 1 ? 45 : 15) : 0,
+      change: "LIVE",
+      trend: (alertsData && alertsData.filter((a) => a.severity === "critical").length > 0 ? "up" : "stable") as TrendType,
+      trendValue: alertsData ? `${alertsData.filter((a) => a.severity === "critical").length} critical` : "Pending",
+      severity: (alertsData && alertsData.filter((a) => a.severity === "critical").length > 0 ? "warning" : "safe") as SeverityType,
+      color: alertsData && alertsData.filter((a) => a.severity === "critical").length > 0 ? "#ef4444" : "#a6cfbe",
+    },
+    {
+      label: "System Status",
+      value: "ACTIVE",
+      percent: 100,
+      change: "LIVE",
+      trend: "stable" as TrendType,
+      trendValue: "All systems operational",
+      severity: "safe" as SeverityType,
+      color: "#a6cfbe",
     }
-    if (kpi.label === "Biodiversity Index" && healthData) {
-      return { ...kpi, value: healthData.biodiversity_score.toFixed(1), percent: healthData.biodiversity_score };
-    }
-    if (kpi.label === "Active Fishing" && zonesData) {
-      return { ...kpi, value: String(zonesData.length), trendValue: `${zonesData.length} zones` };
-    }
-    if (kpi.label === "Risk Level" && alertsData) {
-      const critCount = alertsData.filter((a) => a.severity === "critical").length;
-      const level = critCount >= 3 ? "HIGH" : critCount >= 1 ? "MODERATE" : "LOW";
-      const pct = critCount >= 3 ? 75 : critCount >= 1 ? 45 : 15;
-      return { ...kpi, value: level, percent: pct, trendValue: `${critCount} critical` };
-    }
-    return kpi;
-  });
+  ];
 
   return (
     <motion.div

@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { VESSEL_FEED, INCIDENTS } from "@/lib/authority-data";
 import { AlertTriangle, CloudLightning, Fish, ShieldAlert, Thermometer, Ship, type LucideIcon, Zap } from "lucide-react";
 import { useAlerts } from "@/hooks/use-alerts";
 import { useVessels } from "@/hooks/use-vessels";
@@ -39,10 +38,10 @@ export function BottomTelemetry() {
   const { data: alertsData, loading: alertsLoading, error: alertsError } = useAlerts();
   const { data: vesselsData, loading: vesselsLoading, error: vesselsError } = useVessels();
 
-  // Fallback to mock data if no live data is available
-  const activeIncidents = alertsData || INCIDENTS;
+  // Use pure Supabase data or empty array
+  const activeIncidents = alertsData || [];
 
-  // Map live vessel data to the display format, fallback to mock
+  // Map live vessel data to the display format
   const vesselFeed = vesselsData
     ? vesselsData.map((v) => ({
         id: v.imo_number || v.id,
@@ -54,7 +53,7 @@ export function BottomTelemetry() {
         activity: v.activity as "fishing" | "transit" | "anchored" | "drifting",
         compliance: v.compliance as "compliant" | "warning" | "violation",
       }))
-    : VESSEL_FEED;
+    : [];
 
   return (
     <div className="flex gap-3 h-full min-h-0">

@@ -14,6 +14,8 @@ export interface FishingZone {
   color: "primary" | "secondary" | "tertiary";
   latitude?: number;
   longitude?: number;
+  zone_status?: string;
+  enabled?: boolean;
 }
 
 export interface SpeciesData {

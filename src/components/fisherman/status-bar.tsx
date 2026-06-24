@@ -2,9 +2,12 @@
 
 import { motion } from "framer-motion";
 import { Satellite, Navigation, Cpu, Clock, Anchor } from "lucide-react";
-import { VESSEL_STATUS } from "@/lib/fisherman-data";
+import { useVessels } from "@/hooks/use-vessels";
 
 export function StatusBar() {
+  const { data: vessels } = useVessels();
+  const v = vessels && vessels.length > 0 ? vessels[0] : null;
+
   const gpsColors = {
     strong: "bg-primary",
     moderate: "bg-status-warning",
@@ -21,13 +24,13 @@ export function StatusBar() {
             className="text-on-surface text-[11px]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            {VESSEL_STATUS.name}
+            {v ? v.name : "UNAVAILABLE"}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <Satellite className="h-3.5 w-3.5 text-on-surface-variant" />
           <motion.span
-            className={`h-2 w-2 rounded-full ${gpsColors[VESSEL_STATUS.gpsSignal]}`}
+            className={`h-2 w-2 rounded-full ${v ? gpsColors.strong : gpsColors.weak}`}
             animate={{ opacity: [1, 0.4, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
           />
@@ -35,7 +38,7 @@ export function StatusBar() {
             className="text-on-surface-variant text-[11px]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            GPS {VESSEL_STATUS.gpsSignal.toUpperCase()}
+            GPS {v ? "STRONG" : "OFFLINE"}
           </span>
         </div>
         <div className="hidden md:flex items-center gap-2">
@@ -44,7 +47,7 @@ export function StatusBar() {
             className="text-on-surface-variant text-[11px]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            {VESSEL_STATUS.lat} | {VESSEL_STATUS.lon}
+            {v ? `${v.latitude.toFixed(4)}° | ${v.longitude.toFixed(4)}°` : "N/A | N/A"}
           </span>
         </div>
       </div>
@@ -56,7 +59,7 @@ export function StatusBar() {
             className="text-on-surface-variant text-[11px]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            {VESSEL_STATUS.speed} · {VESSEL_STATUS.heading}
+            {v ? `${v.speed}kt / ${v.heading}°` : "N/A / N/A"}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -65,7 +68,7 @@ export function StatusBar() {
             className="text-primary text-[11px]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
           >
-            AI: {VESSEL_STATUS.aiConfidence}%
+            AI: {v ? "LIVE" : "UNAVAILABLE"}
           </span>
         </div>
         <div className="flex items-center gap-2">
@@ -74,9 +77,9 @@ export function StatusBar() {
             className="text-secondary text-[11px]"
             style={{ fontFamily: "'JetBrains Mono', monospace" }}
             animate={{ opacity: [1, 0.5, 1] }}
-            transition={{ duration: 3, repeat: Infinity }}
+            transition={{ duration: 1.5, repeat: Infinity }}
           >
-            Updated {VESSEL_STATUS.lastUpdate}
+            {v ? "SYNCED" : "OFFLINE"}
           </motion.span>
         </div>
       </div>

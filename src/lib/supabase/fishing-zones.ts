@@ -44,6 +44,8 @@ export function normalizeFishingZone(row: FishingZoneRow): FishingZone {
     color: color,
     latitude: row.latitude,
     longitude: row.longitude,
+    zone_status: row.zone_status || "active",
+    enabled: row.zone_status === "active"
   };
 }
 

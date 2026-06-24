@@ -2,9 +2,12 @@
 
 import { motion } from "framer-motion";
 import { Plus, Minus, Crosshair, Layers, Shield } from "lucide-react";
-import { VESSEL_STATUS } from "@/lib/fisherman-data";
+import { useVessels } from "@/hooks/use-vessels";
 
 export function OceanWorkspace() {
+  const { data: vessels } = useVessels();
+  const vesselName = vessels && vessels.length > 0 ? vessels[0].name : "DATA UNAVAILABLE";
+
   return (
     <div className="relative h-full w-full bg-[#06141a] overflow-hidden">
       {/* Ocean depth gradient */}
@@ -127,7 +130,7 @@ export function OceanWorkspace() {
               className="text-primary text-[10px] font-medium"
               style={{ fontFamily: "'JetBrains Mono', monospace" }}
             >
-              {VESSEL_STATUS.name}
+              {vesselName}
             </span>
           </div>
         </div>

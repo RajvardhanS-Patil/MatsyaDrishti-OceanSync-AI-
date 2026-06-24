@@ -6,7 +6,7 @@ import { Navbar } from "@/components/layout/navbar";
 import { FloatingParticles } from "@/components/animations/floating-particles";
 import { TrendingUp, TrendingDown, Minus, Thermometer, TreePine, BarChart3, Calendar, Shield, Compass, Eye, AlertTriangle, ShieldAlert, Zap } from "lucide-react";
 import {
-  CLIMATE_KPIS, PROJECTIONS, TEMP_TREND, CLIMATE_RECOMMENDATIONS
+  CLIMATE_KPIS, TEMP_TREND
 } from "@/lib/ai-data";
 import { useBiodiversity } from "@/hooks/use-biodiversity";
 
@@ -58,26 +58,10 @@ export default function ClimatePage() {
         </div>
 
         {/* ── Climate Command KPIs ─────────────── */}
-        <motion.div className="grid grid-cols-2 md:grid-cols-5 gap-3"
-          initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}>
-          {CLIMATE_KPIS.map((kpi, i) => {
-            const Icon = trendIcon[kpi.trend];
-            return (
-              <motion.div key={kpi.label} className="glass-panel rounded-lg p-4"
-                initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06 }} whileHover={{ scale: 1.03 }}>
-                <span className="font-label-caps text-[9px] text-on-surface-variant block mb-1">{kpi.label}</span>
-                <span className={`text-xl font-bold ${sevColor[kpi.severity]}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {kpi.value}
-                </span>
-                <div className="flex items-center gap-1 mt-1">
-                  <Icon className={`h-3 w-3 ${sevColor[kpi.severity]}`} />
-                  <span className="text-[9px] text-on-surface-variant">{kpi.change}</span>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+        <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-on-surface-variant">
+          <BarChart3 className="h-6 w-6 mb-2 opacity-50" />
+          <span className="text-[12px] font-mono tracking-widest text-on-surface-variant/50">DATA UNAVAILABLE</span>
+        </div>
 
         {/* ── Temporal Range ───────────────────── */}
         <div className="flex items-center gap-2 justify-center">
@@ -116,28 +100,9 @@ export default function ClimatePage() {
               <h3 className="font-label-caps text-[11px] text-status-warning mb-4 flex items-center gap-2">
                 <Thermometer className="h-4 w-4" /> SST TEMPERATURE TREND
               </h3>
-              <div className="h-48 flex items-end gap-1.5">
-                {TEMP_TREND.map((d, i) => {
-                  const minVal = 27.0;
-                  const maxVal = 30.2;
-                  const height = 20 + ((d.value - minVal) / (maxVal - minVal)) * 75;
-                  const isFuture = parseInt(d.year) > 2025;
-                  return (
-                    <div key={d.year} className="flex-1 flex flex-col items-center group">
-                      <span className="text-[8px] text-on-surface-variant/50 opacity-0 group-hover:opacity-100 transition-opacity mb-1" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                        {d.value}°C
-                      </span>
-                      <motion.div
-                        className={`w-full rounded-t ${isFuture ? "bg-gradient-to-t from-status-warning/40 to-status-warning/70 border border-dashed border-status-warning/30" : "bg-gradient-to-t from-primary/30 to-primary/70"}`}
-                        initial={{ height: 0 }} animate={{ height: `${height}%` }}
-                        transition={{ duration: 0.8, delay: i * 0.06 }}
-                      />
-                      <span className="text-[7px] text-on-surface-variant/40 mt-1 rotate-[-45deg]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                        {d.year}
-                      </span>
-                    </div>
-                  );
-                })}
+              <div className="flex h-48 flex-col items-center justify-center text-on-surface-variant">
+                <Thermometer className="h-6 w-6 mb-2 opacity-50" />
+                <span className="text-[12px] font-mono tracking-widest text-on-surface-variant/50">DATA UNAVAILABLE</span>
               </div>
             </motion.div>
 
@@ -230,40 +195,16 @@ export default function ClimatePage() {
           </div>
         )}
 
-        {/* ── Future Projections ───────────────── */}
+        {/* ── Future Projections ─────────────────── */}
         <motion.div className="glass-panel rounded-lg p-5"
           initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
           <h3 className="font-label-caps text-primary text-[11px] mb-4 flex items-center gap-2">
             <BarChart3 className="h-4 w-4" /> FUTURE PROJECTION ENGINE
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {PROJECTIONS.map((p, i) => (
-              <motion.div key={p.year} className="rounded-lg border border-border-glow bg-surface-container-low p-4"
-                initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 + i * 0.1 }} whileHover={{ scale: 1.02 }}>
-                <div className="text-center mb-3">
-                  <span className="text-2xl font-bold text-primary" style={{ fontFamily: "'JetBrains Mono', monospace" }}>{p.year}</span>
-                  <span className="block text-[9px] text-on-surface-variant">PROJECTION</span>
-                </div>
-                <div className="space-y-2">
-                  {[
-                    { label: "SST Change", value: p.sst, color: "text-status-warning" },
-                    { label: "Migration", value: p.migration, color: "text-status-warning" },
-                    { label: "Coral Loss", value: p.coralLoss, color: "text-status-critical" },
-                    { label: "Biodiversity", value: p.biodiversity, color: "text-status-critical" },
-                    { label: "Risk Zones", value: `${p.riskZones} sectors`, color: "text-on-surface-variant" },
-                  ].map((row) => (
-                    <div key={row.label} className="flex justify-between text-[10px]">
-                      <span className="text-on-surface-variant">{row.label}</span>
-                      <span className={`font-medium ${row.color}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>{row.value}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="mt-3 pt-2 border-t border-border-glow text-center">
-                  <span className="text-[9px] text-primary font-label-caps">{p.priority}</span>
-                </div>
-              </motion.div>
-            ))}
+          <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-on-surface-variant">
+            <BarChart3 className="h-6 w-6 mb-2 opacity-50" />
+            <span className="text-[12px] font-mono tracking-widest text-on-surface-variant/50">HISTORICAL DATA INSUFFICIENT</span>
+            <span className="text-[10px] text-on-surface-variant/40 mt-1">Awaiting 5-year Open-Meteo historical ingestion</span>
           </div>
         </motion.div>
 
@@ -273,28 +214,10 @@ export default function ClimatePage() {
           <h3 className="font-label-caps text-primary text-[11px] mb-4 flex items-center gap-2">
             <AlertTriangle className="h-4 w-4" /> CLIMATE RECOMMENDATIONS
           </h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            {CLIMATE_RECOMMENDATIONS.map((rec, i) => {
-              const Icon = typeIcon[rec.type] || Shield;
-              return (
-                <motion.div key={rec.title}
-                  className="rounded-lg border border-border-glow bg-surface-container-low p-4"
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.5 + i * 0.08 }} whileHover={{ scale: 1.01 }}>
-                  <div className="flex items-start gap-3">
-                    <Icon className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <div>
-                      <span className="text-[12px] text-on-surface font-medium block">{rec.title}</span>
-                      <p className="text-[10px] text-on-surface-variant leading-snug mt-1">{rec.description}</p>
-                      <div className="mt-2 flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-on-surface-variant/40" />
-                        <span className="text-[8px] text-on-surface-variant/60 font-label-caps">{rec.timeframe}</span>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+          <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-on-surface-variant">
+            <AlertTriangle className="h-6 w-6 mb-2 opacity-50" />
+            <span className="text-[12px] font-mono tracking-widest text-on-surface-variant/50">DATA UNAVAILABLE</span>
+            <span className="text-[10px] text-on-surface-variant/40 mt-1">Requires active historical processing</span>
           </div>
         </motion.div>
       </main>

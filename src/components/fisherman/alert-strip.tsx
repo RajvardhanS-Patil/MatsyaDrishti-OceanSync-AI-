@@ -8,9 +8,7 @@ import {
   ShieldAlert,
   Compass,
   type LucideIcon,
-  Zap,
 } from "lucide-react";
-import { ALERTS, type AlertData } from "@/lib/fisherman-data";
 import { useAlerts } from "@/hooks/use-alerts";
 
 const alertIcons: Record<string, LucideIcon> = {
@@ -60,11 +58,20 @@ const severityConfig = {
   },
 };
 
+interface AlertData {
+  id: string;
+  type: "critical" | "warning" | "info" | "notice";
+  title: string;
+  message: string;
+  time: string;
+  icon: string;
+}
+
 export function AlertStrip() {
   const [visible, setVisible] = useState(true);
   const { data: liveAlerts, loading, error } = useAlerts();
 
-  // Convert live Supabase alerts to AlertData format, or fallback to mock
+  // Convert live Supabase alerts to AlertData format
   const alerts: AlertData[] = liveAlerts && liveAlerts.length > 0
     ? liveAlerts.slice(0, 2).map((a) => ({
         id: a.id,
@@ -74,7 +81,7 @@ export function AlertStrip() {
         time: a.time,
         icon: typeToIcon[a.type] || "AlertTriangle",
       }))
-    : ALERTS.slice(0, 2);
+    : [];
 
   if (!visible || alerts.length === 0) return null;
 

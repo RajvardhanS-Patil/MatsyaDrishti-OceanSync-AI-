@@ -73,9 +73,15 @@ export function RightIntelPanel({ streams }: { streams: any }) {
       {(healthData && bioData) && (
         <motion.div className="glass-panel rounded-xl p-4"
           initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.5, delay: 0.1 }}>
-          <h3 className="font-label-caps text-primary text-[11px] mb-3 flex items-center gap-1.5">
-            <HeartPulse className="h-3.5 w-3.5" /> MARINE HEALTH
-          </h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="font-label-caps text-primary text-[11px] flex items-center gap-1.5">
+              <HeartPulse className="h-3.5 w-3.5" /> MARINE HEALTH
+            </h3>
+            <div className="flex flex-col items-end">
+              <span className="text-[7px] text-on-surface-variant/70">{streams.marineHealth?.source}</span>
+              <span className="text-[7px] text-on-surface-variant/70">{streams.marineHealth?.lastUpdated}</span>
+            </div>
+          </div>
           <motion.div className="space-y-2.5" variants={staggerContainer} initial="hidden" animate="visible">
             {[
               { label: "Overall Health Score", value: healthData.health_score, color: "#a6cfbe" },

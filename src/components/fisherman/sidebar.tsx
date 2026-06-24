@@ -96,7 +96,7 @@ export function FishermanSidebar() {
   const [activeItem, setActiveItem] = useState("radar");
   const { data: zonesData, loading: zonesLoading, error: zonesError } = useFishingZones();
   
-  const activeZones = zonesData && zonesData.length > 0 ? zonesData : FISHING_ZONES;
+  const activeZones = zonesData && zonesData.length > 0 ? zonesData : [];
 
   return (
     <aside className="fixed left-0 top-16 bottom-0 z-40 flex flex-col bg-surface-glass backdrop-blur-xl border-r border-border-glow w-[280px] overflow-hidden">
@@ -161,7 +161,7 @@ export function FishermanSidebar() {
               <Zap className="h-5 w-5 mb-2 opacity-50" />
               <span className="text-[10px] font-mono">CONNECTION LOST</span>
             </div>
-          ) : (
+          ) : activeZones.length > 0 ? (
             <motion.div
               className="space-y-4"
               variants={staggerContainer}
@@ -172,6 +172,10 @@ export function FishermanSidebar() {
                 <ZoneCard key={zone.id} zone={zone} index={i} />
               ))}
             </motion.div>
+          ) : (
+            <div className="flex h-20 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-on-surface-variant">
+              <span className="text-[10px] font-mono tracking-widest text-on-surface-variant/50">DATA UNAVAILABLE</span>
+            </div>
           )}
         </div>
       </div>

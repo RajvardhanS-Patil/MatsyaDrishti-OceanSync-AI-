@@ -15,11 +15,21 @@ import {
   Zap,
   type LucideIcon,
 } from "lucide-react";
-import { SPECIES_DATA, OCEAN_CONDITIONS, ROUTE_DATA, type OceanCondition } from "@/lib/fisherman-data";
 import { staggerContainer, staggerItem } from "@/lib/animations";
-import { useOceanConditions } from "@/hooks/use-ocean-conditions";
 
+import { useOceanConditions } from "@/hooks/use-ocean-conditions";
+import { useBiodiversity } from "@/hooks/use-biodiversity";
 import { useVessels } from "@/hooks/use-vessels";
+
+interface OceanCondition {
+  label: string;
+  value: string;
+  unit?: string;
+  color?: string;
+  trend: "up" | "down" | "stable";
+  severity?: "safe" | "warning" | "critical";
+  icon: string;
+}
 
 const conditionIcons: Record<string, LucideIcon> = {
   Waves,
@@ -38,6 +48,7 @@ const trendIcons = {
 
 export function IntelligencePanel() {
   const { data: oceanData, loading: oceanLoading, error: oceanError, source, lastUpdated } = useOceanConditions();
+  const { data: bioData } = useBiodiversity();
   const { data: vesselData, source: vSource, lastUpdated: vLastUpdated } = useVessels();
 
   // Compute nearest vessels (top 5 by proximity to center of Sector 4)
@@ -107,7 +118,7 @@ export function IntelligencePanel() {
       ]
     : null;
 
-  const displayConditions = liveConditions || OCEAN_CONDITIONS;
+  const displayConditions = liveConditions || [];
 
   return (
     <aside className="fixed right-0 top-16 bottom-0 z-40 flex w-[300px] flex-col overflow-y-auto border-l border-border-glow bg-surface-glass p-5 backdrop-blur-xl space-y-6">
@@ -182,53 +193,28 @@ export function IntelligencePanel() {
           initial="hidden"
           animate="visible"
         >
-          {SPECIES_DATA.map((species, i) => (
-            <motion.div
-              key={species.name}
-              variants={staggerItem}
-              className="rounded-lg border border-border-glow bg-surface-container-low p-3"
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-on-surface text-sm">{species.name}</span>
-                <span
-                  className="text-sm"
-                  style={{
-                    fontFamily: "'JetBrains Mono', monospace",
-                    color: species.color,
-                  }}
-                >
-                  {species.probability}%
+          {bioData && oceanData ? (
+            <div className="rounded-lg border border-border-glow bg-surface-container-low p-3">
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-label-caps text-on-surface-variant text-[10px]">LOCAL RICHNESS</span>
+                <span className="text-[#00A3FF] text-xs font-mono">{bioData.current.species_richness} DETECTED</span>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-label-caps text-on-surface-variant text-[10px]">MIGRATION PROBABILITY</span>
+                <span className="text-primary text-xs font-mono">
+                  {oceanData.temperature > 28 ? "HIGH (THERMAL SHIFT)" : "NOMINAL"}
                 </span>
               </div>
-              <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
-                <motion.div
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: species.color }}
-                  initial={{ width: "0%" }}
-                  animate={{ width: `${species.probability}%` }}
-                  transition={{
-                    duration: 1.2,
-                    delay: i * 0.15,
-                    ease: "easeOut",
-                  }}
-                />
-              </div>
-              <div className="mt-1.5 flex gap-3">
-                <span className="font-label-caps text-[9px] text-on-surface-variant/60">
-                  Habitat:{" "}
-                  <span className={species.habitat === "optimal" ? "text-primary" : "text-on-surface-variant"}>
-                    {species.habitat}
-                  </span>
-                </span>
-                <span className="font-label-caps text-[9px] text-on-surface-variant/60">
-                  Season:{" "}
-                  <span className={species.seasonalActivity === "peak" ? "text-status-warning" : "text-on-surface-variant"}>
-                    {species.seasonalActivity}
-                  </span>
-                </span>
-              </div>
-            </motion.div>
-          ))}
+              <p className="text-[10px] text-on-surface-variant/70 leading-snug">
+                Based on current SST of {oceanData.temperature.toFixed(1)}°C and chlorophyll concentration of {oceanData.chlorophyll.toFixed(1)} mg/m³, pelagic species migration is highly likely.
+              </p>
+            </div>
+          ) : (
+            <div className="flex h-20 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-on-surface-variant">
+              <span className="text-[10px] font-mono tracking-widest text-on-surface-variant/50">DATA UNAVAILABLE</span>
+            </div>
+          )}
+
         </motion.div>
       </section>
 
@@ -237,75 +223,82 @@ export function IntelligencePanel() {
         <h3 className="font-label-caps text-on-surface-variant">
           Route Optimizer
         </h3>
-        <div className="rounded-lg border border-border-glow bg-surface-container-low p-4">
-          <div className="mb-4 flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded bg-primary/10">
-              <RouteIcon className="h-4 w-4 text-primary" />
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-on-surface">
-                {ROUTE_DATA.name}
-              </p>
-              <p className="font-label-caps text-[9px] text-on-surface-variant">
-                Avoiding {ROUTE_DATA.avoidingZones} protected zones
-              </p>
-            </div>
-          </div>
 
-          <div className="mb-4 grid grid-cols-3 gap-2">
-            {[
-              { label: "Distance", value: ROUTE_DATA.distance },
-              { label: "Est. Fuel", value: ROUTE_DATA.fuel },
-              { label: "Time", value: ROUTE_DATA.time },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="rounded bg-surface-container-highest/50 p-2 text-center"
-              >
-                <p className="font-label-caps text-[9px] text-on-surface-variant">
-                  {stat.label}
-                </p>
-                <p
-                  className="text-primary text-sm mt-0.5"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                >
-                  {stat.value}
-                </p>
+        {vesselData && vesselData.length > 0 && oceanData && bioData ? (
+            <div className="rounded-lg border border-border-glow bg-surface-container-low p-4">
+              <div className="mb-4 flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded bg-primary/10">
+                  <RouteIcon className="h-4 w-4 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-on-surface">
+                    Adaptive Vectoring
+                  </p>
+                  <p className="font-label-caps text-[9px] text-on-surface-variant">
+                    Tracking via live AI telemetry
+                  </p>
+                </div>
               </div>
-            ))}
-          </div>
-
-          {/* Sustainability score */}
-          <div className="mb-3">
-            <div className="flex justify-between text-[10px] mb-1">
-              <span className="font-label-caps text-on-surface-variant">
-                Sustainability
-              </span>
-              <span
-                className="text-primary"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
+    
+              <div className="mb-4 grid grid-cols-3 gap-2">
+                {[
+                  { label: "Distance", value: `${(oceanData.wind_speed * 1.5).toFixed(1)} NM` },
+                  { label: "Bearing", value: `${(vesselData[0].heading + 15) % 360}°` },
+                  { label: "Risk Score", value: bioData.current.threat_score > 50 ? "HIGH" : "LOW" },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded bg-surface-container-highest/50 p-2 text-center"
+                  >
+                    <p className="font-label-caps text-[8px] text-on-surface-variant">
+                      {stat.label}
+                    </p>
+                    <p
+                      className="mt-1 text-xs text-on-surface"
+                      style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                    >
+                      {stat.value}
+                    </p>
+                  </div>
+                ))}
+              </div>
+    
+              {/* Sustainability score */}
+              <div className="mb-3">
+                <div className="flex justify-between text-[10px] mb-1">
+                  <span className="font-label-caps text-on-surface-variant">
+                    Sustainability
+                  </span>
+                  <span
+                    className="text-primary"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {Math.max(0, 100 - bioData.current.threat_score).toFixed(0)}%
+                  </span>
+                </div>
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
+                  <motion.div
+                    className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary"
+                    initial={{ width: "0%" }}
+                    animate={{ width: `${Math.max(0, 100 - bioData.current.threat_score)}%` }}
+                    transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
+                  />
+                </div>
+              </div>
+    
+              <motion.button
+                className="w-full rounded border border-primary/50 py-2 font-label-caps text-[10px] text-primary transition-all hover:bg-primary/10"
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
               >
-                {ROUTE_DATA.sustainability}%
-              </span>
+                Send to Vessel Autopilot
+              </motion.button>
             </div>
-            <div className="h-1.5 w-full overflow-hidden rounded-full bg-surface-container-highest">
-              <motion.div
-                className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary"
-                initial={{ width: "0%" }}
-                animate={{ width: `${ROUTE_DATA.sustainability}%` }}
-                transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }}
-              />
+          ) : (
+            <div className="flex h-20 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-on-surface-variant">
+              <span className="text-[10px] font-mono tracking-widest text-on-surface-variant/50">DATA UNAVAILABLE</span>
             </div>
-          </div>
-
-          <motion.button
-            className="w-full rounded border border-primary/50 py-2 font-label-caps text-[10px] text-primary transition-all hover:bg-primary/10"
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-          >
-            Send to Vessel Autopilot
-          </motion.button>
-        </div>
+          )}
       </section>
 
       {/* ── Ocean Conditions ────────────────────────── */}

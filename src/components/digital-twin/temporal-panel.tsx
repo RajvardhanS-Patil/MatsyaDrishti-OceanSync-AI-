@@ -3,7 +3,13 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { Play, Pause, SkipForward, SkipBack } from "lucide-react";
-import { TIME_PERIODS } from "@/lib/digital-twin-data";
+const TIME_PERIODS = [
+  { label: "24 Hours", value: 10, tag: "LIVE" },
+  { label: "7 Days", value: 30, tag: "RECENT" },
+  { label: "30 Days", value: 50, tag: "MONTHLY" },
+  { label: "6 Months", value: 70, tag: "SEASONAL" },
+  { label: "1 Year", value: 90, tag: "ANNUAL" },
+];
 
 const TIMELINE_LABELS = [
   { pos: 0, label: "JAN 2024 (HIST)" },

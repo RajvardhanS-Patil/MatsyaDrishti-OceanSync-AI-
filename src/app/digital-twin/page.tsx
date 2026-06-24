@@ -39,7 +39,7 @@ export default function DigitalTwinPage() {
   const [timeValue, setTimeValue] = useState(75);
 
   // Lift state up to prevent multiple API calls across twin components
-  const { data: healthData, loading: hl } = useMarineHealth();
+  const { data: healthData, loading: hl, source: hSource, lastUpdated: hLastUpdated } = useMarineHealth();
   const { data: bioData, loading: bl, source: bSource, lastUpdated: bLastUpdated } = useBiodiversity();
   const { data: oceanData, loading: ol, source: osource, lastUpdated: oLastUpdated } = useOceanConditions();
   const { data: vesselsData, loading: vl, source: vSource, lastUpdated: vLastUpdated } = useVessels();
@@ -47,7 +47,7 @@ export default function DigitalTwinPage() {
   const { data: aiData, loading: ail } = useAIPredictions();
 
   const streams = {
-    marineHealth: { data: healthData, loading: hl },
+    marineHealth: { data: healthData, loading: hl, source: hSource, lastUpdated: hLastUpdated },
     biodiversity: { data: bioData, loading: bl, source: bSource, lastUpdated: bLastUpdated },
     oceanConditions: { data: oceanData, loading: ol, source: osource, lastUpdated: oLastUpdated },
     vessels: { data: vesselsData, loading: vl, source: vSource, lastUpdated: vLastUpdated },

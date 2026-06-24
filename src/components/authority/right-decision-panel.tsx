@@ -3,23 +3,21 @@
 import { motion } from "framer-motion";
 import { useState } from "react";
 import { AlertTriangle, Grid3X3, Radio, Leaf, TrendingUp, TrendingDown, Minus, ShieldAlert, Zap } from "lucide-react";
-import { MANAGED_ZONES, TELEMETRY_STREAMS } from "@/lib/authority-data";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { useBiodiversity } from "@/hooks/use-biodiversity";
 import { useVessels } from "@/hooks/use-vessels";
+import { useFishingZones } from "@/hooks/use-fishing-zones";
+import { useOceanConditions } from "@/hooks/use-ocean-conditions";
 import { Ship } from "lucide-react";
 
 const trendIcon = { improving: TrendingUp, declining: TrendingDown, stable: Minus };
 const trendColor = { improving: "text-primary", declining: "text-status-critical", stable: "text-on-surface-variant" };
 
 export function RightDecisionPanel() {
-  const [zones, setZones] = useState(MANAGED_ZONES);
   const { data: bioData, loading: bioLoading, error: bioError, source, lastUpdated } = useBiodiversity();
   const { data: vesselData, source: vSource, lastUpdated: vLastUpdated } = useVessels();
-
-  const toggleZone = (idx: number) => {
-    setZones((prev) => prev.map((z, i) => i === idx ? { ...z, enabled: !z.enabled } : z));
-  };
+  const { data: zonesData, loading: zonesLoading, error: zonesError } = useFishingZones();
+  const { data: oceanData } = useOceanConditions();
 
   // Build chart data from history (oldest to newest for left-to-right chart)
   const chartData = bioData 
@@ -183,61 +181,62 @@ export function RightDecisionPanel() {
         <h3 className="font-label-caps text-primary mb-3 flex items-center gap-2 text-[11px]">
           <Grid3X3 className="h-4 w-4" /> Zone Management
         </h3>
-        <motion.div className="space-y-2.5" variants={staggerContainer} initial="hidden" animate="visible">
-          {zones.map((zone, i) => {
-            const statusColor = zone.status === "active" ? "text-status-info" : zone.status === "revision" ? "text-status-warning" : "text-on-surface-variant";
-            return (
-              <motion.div key={zone.name} variants={staggerItem}
-                className="flex items-center justify-between rounded border border-border-glow bg-surface-container-low p-3">
-                <div>
-                  <span className="text-on-surface text-[12px]">{zone.name}</span>
-                  <span className={`block font-label-caps text-[8px] mt-0.5 ${statusColor}`}>{zone.statusLabel}</span>
-                </div>
-                <motion.button onClick={() => toggleZone(i)}
-                  className={`relative h-5 w-10 rounded-full px-1 flex items-center transition-colors cursor-pointer ${
-                    zone.enabled ? "bg-primary/40" : "bg-surface-container-highest"
-                  }`}
-                  whileTap={{ scale: 0.95 }}>
-                  <motion.div className={`h-3 w-3 rounded-full ${zone.enabled ? "bg-primary" : "bg-on-surface-variant"}`}
-                    animate={{ x: zone.enabled ? 18 : 0 }}
-                    transition={{ type: "spring", stiffness: 500, damping: 30 }}
-                  />
-                </motion.button>
-              </motion.div>
-            );
-          })}
-        </motion.div>
+        {zonesLoading ? (
+           <span className="text-[10px] text-on-surface-variant font-mono">LOADING ZONES...</span>
+        ) : zonesError || !zonesData || zonesData.length === 0 ? (
+           <span className="text-[10px] text-on-surface-variant font-mono">DATA UNAVAILABLE</span>
+        ) : (
+          <motion.div className="space-y-2.5" variants={staggerContainer} initial="hidden" animate="visible">
+            {zonesData.map((zone, i) => {
+              const statusColor = zone.zone_status === "active" ? "text-status-info" : "text-status-warning";
+              return (
+                <motion.div key={zone.id} variants={staggerItem}
+                  className="flex items-center justify-between rounded border border-border-glow bg-surface-container-low p-3">
+                  <div>
+                    <span className="text-on-surface text-[12px]">{zone.name}</span>
+                    <span className={`block font-label-caps text-[8px] mt-0.5 ${statusColor}`}>{zone.zone_status?.toUpperCase() || "ACTIVE"}</span>
+                  </div>
+                  <motion.button
+                    className={`relative h-5 w-10 rounded-full px-1 flex items-center transition-colors cursor-pointer ${
+                      zone.zone_status === "active" ? "bg-primary/40" : "bg-surface-container-highest"
+                    }`}
+                    whileTap={{ scale: 0.95 }}>
+                    <motion.div className={`h-3 w-3 rounded-full ${zone.zone_status === "active" ? "bg-primary" : "bg-on-surface-variant"}`}
+                      animate={{ x: zone.zone_status === "active" ? 18 : 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    />
+                  </motion.button>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
       </div>
 
-      {/* ── Ecosystem Telemetry Sparklines ── */}
+      {/* ── Ecosystem Telemetry ── */}
       <div className="glass-panel rounded-lg p-5 flex-1">
         <div className="flex items-center justify-between mb-3">
           <h3 className="font-label-caps text-on-surface-variant text-[10px]">Ecosystem Telemetry</h3>
           <Radio className="h-4 w-4 text-on-surface-variant/50" />
         </div>
-        <div className="space-y-4">
-          {TELEMETRY_STREAMS.map((stream, i) => (
-            <div key={stream.label}>
-              <div className="flex items-center justify-between mb-1">
-                <span className="font-label-caps text-[9px] text-on-surface-variant">{stream.label}</span>
-                <span className="text-[11px]" style={{ fontFamily: "'JetBrains Mono', monospace", color: stream.color }}>
-                  {stream.value}{stream.unit}
-                </span>
-              </div>
-              {/* SVG Sparkline */}
-              <div className="h-7 w-full">
-                <svg className="w-full h-full" viewBox="0 0 100 20" preserveAspectRatio="none">
-                  <motion.polyline
-                    fill="none" stroke={stream.color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-                    points={stream.sparkline.map((v, j) => `${(j / (stream.sparkline.length - 1)) * 100},${20 - v}`).join(" ")}
-                    initial={{ pathLength: 0 }} animate={{ pathLength: 1 }}
-                    transition={{ duration: 1.5, delay: i * 0.2, ease: "easeOut" }}
-                  />
-                </svg>
-              </div>
-            </div>
-          ))}
-        </div>
+        {bioData && oceanData ? (
+          <div className="space-y-4">
+             <div className="flex items-center justify-between mb-1">
+               <span className="font-label-caps text-[9px] text-on-surface-variant">SST Anomaly</span>
+               <span className="text-[11px] font-mono text-[#00A3FF]">{oceanData.temperature.toFixed(1)}°C</span>
+             </div>
+             <div className="flex items-center justify-between mb-1">
+               <span className="font-label-caps text-[9px] text-on-surface-variant">Threat Level</span>
+               <span className="text-[11px] font-mono text-status-warning">{bioData.current.threat_score.toFixed(1)}/100</span>
+             </div>
+             <div className="flex items-center justify-between mb-1">
+               <span className="font-label-caps text-[9px] text-on-surface-variant">Wave Energy</span>
+               <span className="text-[11px] font-mono text-primary">{oceanData.wave_height.toFixed(1)}m</span>
+             </div>
+          </div>
+        ) : (
+           <span className="text-[10px] text-on-surface-variant font-mono">DATA UNAVAILABLE</span>
+        )}
       </div>
     </div>
   );

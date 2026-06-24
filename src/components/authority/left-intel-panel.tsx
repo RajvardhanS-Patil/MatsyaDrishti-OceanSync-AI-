@@ -2,7 +2,6 @@
 
 import { motion } from "framer-motion";
 import { Zap, ArrowDown, Satellite, Anchor, Dna, Ship, Radio } from "lucide-react";
-import { AI_INPUTS, AI_OUTPUTS, AI_RECOMMENDATION, HEALTH_METRICS } from "@/lib/authority-data";
 import { staggerContainer, staggerItem } from "@/lib/animations";
 import { useMarineHealth } from "@/hooks/use-marine-health";
 
@@ -13,15 +12,12 @@ const severityBg = { safe: "bg-primary/10", moderate: "bg-status-warning/10", hi
 export function LeftIntelPanel() {
   const { data, loading, error } = useMarineHealth();
 
-  // Map live data into the existing mock structure to preserve colors, trends, etc.
-  const liveMetrics = HEALTH_METRICS.map((m) => {
-    if (!data) return m;
-    if (m.label === "Overall Marine Health") return { ...m, score: data.health_score };
-    if (m.label === "Coral Health") return { ...m, score: data.coral_health };
-    if (m.label === "Fish Population") return { ...m, label: "Biodiversity Score", score: data.biodiversity_score };
-    if (m.label === "Water Quality") return { ...m, score: data.water_quality };
-    return m;
-  });
+  const liveMetrics = [
+    { label: "Overall Marine Health", score: data ? data.health_score : 0, trend: "stable", forecast: "stable", color: "#a6cfbe" },
+    { label: "Coral Health", score: data ? data.coral_health : 0, trend: "stable", forecast: "stable", color: "#4ade80" },
+    { label: "Biodiversity Score", score: data ? data.biodiversity_score : 0, trend: "stable", forecast: "stable", color: "#3b82f6" },
+    { label: "Water Quality", score: data ? data.water_quality : 0, trend: "stable", forecast: "stable", color: "#818cf8" }
+  ];
 
   const displayScore = data ? data.health_score : 84.2;
 
@@ -103,68 +99,10 @@ export function LeftIntelPanel() {
           AI Fusion Center
         </h3>
 
-        {/* Input streams */}
-        <motion.div className="space-y-2" variants={staggerContainer} initial="hidden" animate="visible">
-          {AI_INPUTS.slice(0, 3).map((input) => (
-            <motion.div key={input.label} variants={staggerItem}
-              className="flex items-center justify-between rounded border border-border-glow bg-surface-container-low p-2.5"
-            >
-              <div>
-                <span className="font-label-caps text-[9px] text-on-surface-variant">{input.label}</span>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <Satellite className="h-3 w-3 text-on-surface-variant/50" />
-                  <span className="text-[9px] text-on-surface-variant/60 truncate max-w-[140px]" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                    {input.stream}
-                  </span>
-                </div>
-              </div>
-              <motion.span className={`h-2 w-2 rounded-full ${statusColors[input.status]}`}
-                animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }}
-              />
-            </motion.div>
-          ))}
-        </motion.div>
-
-        {/* Arrow */}
-        <div className="flex justify-center my-2">
-          <motion.div animate={{ y: [0, 4, 0] }} transition={{ duration: 1.5, repeat: Infinity }}>
-            <ArrowDown className="h-5 w-5 text-primary/40" />
-          </motion.div>
-        </div>
-
-        {/* AI Output */}
-        <div className="space-y-2">
-          {AI_OUTPUTS.slice(0, 2).map((output) => (
-            <div key={output.label} className={`rounded border border-border-glow p-2.5 ${severityBg[output.severity]}`}>
-              <div className="flex items-center justify-between mb-1">
-                <span className={`font-label-caps text-[9px] ${severityColors[output.severity]}`}>{output.label}</span>
-                <span className="text-[9px] text-on-surface-variant" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                  {output.confidence}%
-                </span>
-              </div>
-              <p className="text-[11px] text-on-surface-variant leading-snug">{output.value}</p>
-            </div>
-          ))}
-        </div>
-
-        {/* Recommendation */}
-        <div className="mt-4">
-          <span className="font-label-caps text-[9px] text-on-surface-variant mb-1.5 block">INTELLIGENCE OUTPUT</span>
-          <div className="border-l-2 border-primary py-1.5 pl-3">
-            <p className="text-primary text-[12px] italic leading-snug">"{AI_RECOMMENDATION}"</p>
-          </div>
-        </div>
-
-        {/* AI Confidence Meter */}
-        <div className="mt-4 flex items-center gap-3">
-          <span className="font-label-caps text-[9px] text-on-surface-variant shrink-0">AI CONFIDENCE</span>
-          <div className="h-2 flex-1 overflow-hidden rounded-full bg-surface-container-highest">
-            <motion.div className="h-full rounded-full bg-gradient-to-r from-primary/60 to-primary"
-              initial={{ width: "0%" }} animate={{ width: "91%" }}
-              transition={{ duration: 2, ease: "easeOut", delay: 0.5 }}
-            />
-          </div>
-          <span className="text-primary text-[11px] font-medium" style={{ fontFamily: "'JetBrains Mono', monospace" }}>91%</span>
+        <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-on-surface-variant">
+          <Zap className="h-6 w-6 mb-2 opacity-50" />
+          <span className="text-[12px] font-mono tracking-widest text-on-surface-variant/50">DATA UNAVAILABLE</span>
+          <span className="text-[10px] text-on-surface-variant/40 mt-1">Requires active Matsya Engine stream</span>
         </div>
       </div>
     </div>
