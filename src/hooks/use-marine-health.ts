@@ -24,7 +24,7 @@ export function useMarineHealth() {
           .eq("metric", "marine_health")
           .order("last_updated", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (isMounted) {
           setData(result);

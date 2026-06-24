@@ -28,7 +28,7 @@ export function useOceanConditions() {
           .eq("metric", "sea_surface_temperature")
           .order("last_updated", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (isMounted) {
           setData(result);

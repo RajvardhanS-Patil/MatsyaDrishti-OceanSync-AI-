@@ -64,7 +64,7 @@ export function useBiodiversity() {
           .eq("metric", "species_richness")
           .order("last_updated", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
         
         if (isMounted && rows && rows.length > 0) {
           const current = rows[0];

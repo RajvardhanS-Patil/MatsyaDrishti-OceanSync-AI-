@@ -27,7 +27,7 @@ export function useVessels() {
           .eq("metric", "vessels")
           .order("last_updated", { ascending: false })
           .limit(1)
-          .single();
+          .maybeSingle();
 
         if (isMounted) {
           setData(result);
