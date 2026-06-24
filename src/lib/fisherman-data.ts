@@ -12,6 +12,8 @@ export interface FishingZone {
   confidence: "high" | "medium" | "low";
   description: string;
   color: "primary" | "secondary" | "tertiary";
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface SpeciesData {

@@ -4,6 +4,9 @@ import { motion } from "framer-motion";
 import { COMMAND_KPIS } from "@/lib/authority-data";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { useMarineHealth } from "@/hooks/use-marine-health";
+import { useAlerts } from "@/hooks/use-alerts";
+import { useFishingZones } from "@/hooks/use-fishing-zones";
 
 function AnimatedScore({ target, color }: { target: number; color: string }) {
   const [val, setVal] = useState(0);
@@ -31,6 +34,30 @@ function AnimatedScore({ target, color }: { target: number; color: string }) {
 }
 
 export function CommandHeader() {
+  const { data: healthData } = useMarineHealth();
+  const { data: alertsData } = useAlerts();
+  const { data: zonesData } = useFishingZones();
+
+  // Build live KPIs by overriding mock values with Supabase data
+  const liveKPIs = COMMAND_KPIS.map((kpi) => {
+    if (kpi.label === "Marine Health Score" && healthData) {
+      return { ...kpi, value: healthData.health_score.toFixed(1), percent: healthData.health_score };
+    }
+    if (kpi.label === "Biodiversity Index" && healthData) {
+      return { ...kpi, value: healthData.biodiversity_score.toFixed(1), percent: healthData.biodiversity_score };
+    }
+    if (kpi.label === "Active Fishing" && zonesData) {
+      return { ...kpi, value: String(zonesData.length), trendValue: `${zonesData.length} zones` };
+    }
+    if (kpi.label === "Risk Level" && alertsData) {
+      const critCount = alertsData.filter((a) => a.severity === "critical").length;
+      const level = critCount >= 3 ? "HIGH" : critCount >= 1 ? "MODERATE" : "LOW";
+      const pct = critCount >= 3 ? 75 : critCount >= 1 ? 45 : 15;
+      return { ...kpi, value: level, percent: pct, trendValue: `${critCount} critical` };
+    }
+    return kpi;
+  });
+
   return (
     <motion.div
       className="flex items-stretch gap-3 overflow-x-auto pb-1"
@@ -38,7 +65,7 @@ export function CommandHeader() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
-      {COMMAND_KPIS.map((kpi, i) => {
+      {liveKPIs.map((kpi, i) => {
         const TrendIcon = kpi.trend === "up" ? TrendingUp : kpi.trend === "down" ? TrendingDown : Minus;
         const trendColor = kpi.trend === "up" ? "text-primary" : kpi.trend === "down" ? "text-status-critical" : "text-on-surface-variant/50";
 
@@ -65,7 +92,7 @@ export function CommandHeader() {
                   / {kpi.max}
                 </span>
               )}
-              {!kpi.max && kpi.value === "MODERATE" && (
+              {!kpi.max && (kpi.value === "MODERATE" || kpi.value === "HIGH" || kpi.value === "LOW") && (
                 <span className="text-sm font-bold" style={{ fontFamily: "'JetBrains Mono', monospace", color: kpi.color }}>
                   {kpi.value}
                 </span>

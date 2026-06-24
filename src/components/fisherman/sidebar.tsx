@@ -13,10 +13,12 @@ import {
   HelpCircle,
   Terminal,
   type LucideIcon,
+  Zap,
 } from "lucide-react";
 import { useState } from "react";
 import { FISHING_ZONES, type FishingZone } from "@/lib/fisherman-data";
 import { staggerContainer, staggerItem } from "@/lib/animations";
+import { useFishingZones } from "@/hooks/use-fishing-zones";
 
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard,
@@ -92,6 +94,9 @@ function ZoneCard({ zone, index }: { zone: FishingZone; index: number }) {
 
 export function FishermanSidebar() {
   const [activeItem, setActiveItem] = useState("radar");
+  const { data: zonesData, loading: zonesLoading, error: zonesError } = useFishingZones();
+  
+  const activeZones = zonesData && zonesData.length > 0 ? zonesData : FISHING_ZONES;
 
   return (
     <aside className="fixed left-0 top-16 bottom-0 z-40 flex flex-col bg-surface-glass backdrop-blur-xl border-r border-border-glow w-[280px] overflow-hidden">
@@ -145,16 +150,29 @@ export function FishermanSidebar() {
           <h3 className="font-label-caps text-on-surface-variant/50 text-[10px] mb-4 tracking-widest">
             PREDICTIVE RADAR
           </h3>
-          <motion.div
-            className="space-y-4"
-            variants={staggerContainer}
-            initial="hidden"
-            animate="visible"
-          >
-            {FISHING_ZONES.map((zone, i) => (
-              <ZoneCard key={zone.id} zone={zone} index={i} />
-            ))}
-          </motion.div>
+          
+          {zonesLoading ? (
+            <div className="flex h-32 flex-col items-center justify-center gap-4 rounded-xl border border-border-glow bg-surface-container-low p-4">
+              <div className="h-6 w-6 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+              <span className="text-primary/50 text-[10px] font-mono animate-pulse">[SCANNING ZONES...]</span>
+            </div>
+          ) : zonesError && !zonesData ? (
+            <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-4 text-status-critical">
+              <Zap className="h-5 w-5 mb-2 opacity-50" />
+              <span className="text-[10px] font-mono">CONNECTION LOST</span>
+            </div>
+          ) : (
+            <motion.div
+              className="space-y-4"
+              variants={staggerContainer}
+              initial="hidden"
+              animate="visible"
+            >
+              {activeZones.map((zone, i) => (
+                <ZoneCard key={zone.id} zone={zone} index={i} />
+              ))}
+            </motion.div>
+          )}
         </div>
       </div>
 

@@ -2,12 +2,12 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { Eye, EyeOff, SlidersHorizontal, Fish, TreePine, Shell, Thermometer, Waves, Leaf, Ship, Shield, type LucideIcon } from "lucide-react";
-import { ECO_LAYERS, type EcoLayer } from "@/lib/digital-twin-data";
+import { Eye, EyeOff, SlidersHorizontal, HeartPulse, Dna, Waves, Ship, AlertTriangle, Shield, type LucideIcon } from "lucide-react";
+import { type TwinLayer } from "@/app/digital-twin/page";
 
-const iconMap: Record<string, LucideIcon> = { Fish, TreePine, Shell, Thermometer, Waves, Leaf, Ship, Shield };
+const iconMap: Record<string, LucideIcon> = { HeartPulse, Dna, Waves, Ship, AlertTriangle, Shield };
 
-export function LayerPanel({ layers, onToggle }: { layers: EcoLayer[]; onToggle: (id: string) => void }) {
+export function LayerPanel({ layers, onToggle }: { layers: TwinLayer[]; onToggle: (id: string) => void }) {
   return (
     <motion.div
       className="glass-panel rounded-xl p-4"
@@ -21,7 +21,7 @@ export function LayerPanel({ layers, onToggle }: { layers: EcoLayer[]; onToggle:
       </div>
       <div className="space-y-1.5">
         {layers.map((layer, i) => {
-          const Icon = iconMap[layer.icon] || Fish;
+          const Icon = iconMap[layer.icon] || HeartPulse;
           return (
             <motion.button
               key={layer.id}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { getLatestAlerts } from "@/lib/supabase/alerts";
-import { type IncidentEntry } from "@/lib/authority-data";
+import { getLatestFishingZones } from "@/lib/supabase/fishing-zones";
+import { type FishingZone } from "@/lib/fisherman-data";
 
-export function useAlerts() {
-  const [data, setData] = useState<IncidentEntry[] | null>(null);
+export function useFishingZones() {
+  const [data, setData] = useState<FishingZone[] | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
@@ -14,13 +14,13 @@ export function useAlerts() {
       try {
         setLoading(true);
         setError(null);
-        const result = await getLatestAlerts();
+        const result = await getLatestFishingZones();
         if (isMounted) {
           setData(result);
         }
       } catch (err) {
         if (isMounted) {
-          setError(err instanceof Error ? err : new Error("Failed to fetch alerts data"));
+          setError(err instanceof Error ? err : new Error("Failed to fetch fishing zones data"));
         }
       } finally {
         if (isMounted) {

@@ -12,10 +12,14 @@ import {
   TrendingUp,
   TrendingDown,
   Minus,
+  Zap,
   type LucideIcon,
 } from "lucide-react";
-import { SPECIES_DATA, OCEAN_CONDITIONS, ROUTE_DATA } from "@/lib/fisherman-data";
+import { SPECIES_DATA, OCEAN_CONDITIONS, ROUTE_DATA, type OceanCondition } from "@/lib/fisherman-data";
 import { staggerContainer, staggerItem } from "@/lib/animations";
+import { useOceanConditions } from "@/hooks/use-ocean-conditions";
+
+import { useVessels } from "@/hooks/use-vessels";
 
 const conditionIcons: Record<string, LucideIcon> = {
   Waves,
@@ -33,6 +37,78 @@ const trendIcons = {
 };
 
 export function IntelligencePanel() {
+  const { data: oceanData, loading: oceanLoading, error: oceanError, source, lastUpdated } = useOceanConditions();
+  const { data: vesselData, source: vSource, lastUpdated: vLastUpdated } = useVessels();
+
+  // Compute nearest vessels (top 5 by proximity to center of Sector 4)
+  const centerLat = 17.0;
+  const centerLon = 74.0;
+  const nearbyVessels = vesselData
+    ? [...vesselData]
+        .map(v => ({
+          ...v,
+          dist: Math.sqrt(Math.pow(v.latitude - centerLat, 2) + Math.pow(v.longitude - centerLon, 2))
+        }))
+        .sort((a, b) => a.dist - b.dist)
+        .slice(0, 5)
+    : [];
+
+  // Map live ocean_conditions row to the OceanCondition display format
+  const liveConditions: OceanCondition[] | null = oceanData
+    ? [
+        {
+          label: "Wave Height",
+          value: oceanData.wave_height.toFixed(1),
+          unit: "m",
+          icon: "Waves",
+          color: "text-status-info",
+          trend: "stable" as const,
+        },
+        {
+          label: "Temperature",
+          value: oceanData.temperature.toFixed(1),
+          unit: "°C",
+          icon: "Thermometer",
+          color: "text-tertiary",
+          trend: "up" as const,
+        },
+        {
+          label: "Salinity",
+          value: oceanData.salinity.toFixed(1),
+          unit: "‰",
+          icon: "Droplets",
+          color: "text-secondary",
+          trend: "stable" as const,
+        },
+        {
+          label: "Wind Speed",
+          value: oceanData.wind_speed.toFixed(0),
+          unit: "kt",
+          icon: "Wind",
+          color: "text-primary",
+          trend: "down" as const,
+        },
+        {
+          label: "Current",
+          value: oceanData.current_speed.toFixed(1),
+          unit: "kt",
+          icon: "Navigation",
+          color: "text-status-info",
+          trend: "up" as const,
+        },
+        {
+          label: "Chlorophyll",
+          value: oceanData.chlorophyll.toFixed(1),
+          unit: "mg/m³",
+          icon: "Leaf",
+          color: "text-primary",
+          trend: "up" as const,
+        },
+      ]
+    : null;
+
+  const displayConditions = liveConditions || OCEAN_CONDITIONS;
+
   return (
     <aside className="fixed right-0 top-16 bottom-0 z-40 flex w-[300px] flex-col overflow-y-auto border-l border-border-glow bg-surface-glass p-5 backdrop-blur-xl space-y-6">
       {/* Panel Title */}
@@ -42,6 +118,47 @@ export function IntelligencePanel() {
       >
         Intelligence Center
       </h2>
+
+      {/* ── Nearby Vessels Awareness ─────────────── */}
+      {nearbyVessels.length > 0 && (
+        <section className="space-y-2">
+          <div className="flex items-center justify-between">
+            <h3 className="font-label-caps text-on-surface-variant">
+              Nearby Vessels
+            </h3>
+            <div className="flex flex-col items-end">
+              <span className="text-[7px] text-on-surface-variant/70">{vSource}</span>
+              <span className="text-[7px] text-on-surface-variant/70">{vLastUpdated}</span>
+            </div>
+          </div>
+          <motion.div
+            className="space-y-2"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {nearbyVessels.map((v, i) => (
+              <motion.div
+                key={v.id}
+                variants={staggerItem}
+                className="rounded-lg border border-border-glow bg-surface-container-low p-3"
+              >
+                <div className="flex justify-between items-center">
+                  <span className="text-[11px] text-on-surface font-medium">{v.name}</span>
+                  <span className={`font-label-caps text-[8px] ${v.activity === "fishing" ? "text-status-warning" : "text-primary"}`}>
+                    {v.activity.toUpperCase()}
+                  </span>
+                </div>
+                <div className="flex justify-between mt-1 text-[9px] text-on-surface-variant" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                  <span>{v.speed.toFixed(1)} kn</span>
+                  <span>{v.heading}°</span>
+                  <span>{v.latitude.toFixed(2)}°N {v.longitude.toFixed(2)}°E</span>
+                </div>
+              </motion.div>
+            ))}
+          </motion.div>
+        </section>
+      )}
 
       {/* ── Species Analysis ───────────────────────── */}
       <section className="space-y-3">
@@ -193,52 +310,81 @@ export function IntelligencePanel() {
 
       {/* ── Ocean Conditions ────────────────────────── */}
       <section className="space-y-3">
-        <h3 className="font-label-caps text-on-surface-variant">
-          Ocean Conditions
-        </h3>
-        <motion.div
-          className="grid grid-cols-2 gap-3"
-          variants={staggerContainer}
-          initial="hidden"
-          animate="visible"
-        >
-          {OCEAN_CONDITIONS.map((condition, i) => {
-            const Icon = conditionIcons[condition.icon] || Waves;
-            const TrendIcon = condition.trend ? trendIcons[condition.trend] : Minus;
-            return (
-              <motion.div
-                key={condition.label}
-                variants={staggerItem}
-                className="flex flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-3"
-              >
-                <Icon className={`mb-1.5 h-5 w-5 ${condition.color}`} />
-                <p className="font-label-caps text-[9px] text-on-surface-variant mb-0.5">
-                  {condition.label}
-                </p>
-                <p
-                  className="text-on-surface text-lg"
-                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+        <div className="flex items-center justify-between">
+          <h3 className="font-label-caps text-on-surface-variant">
+            Ocean Conditions
+          </h3>
+          {!oceanLoading && !oceanError && oceanData && (
+            <div className="flex flex-col items-end">
+              <span className="font-label-caps text-primary/70 text-[10px] flex items-center gap-1">
+                <motion.span
+                  className="inline-block h-1.5 w-1.5 rounded-full bg-primary"
+                  animate={{ opacity: [1, 0.3, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+                LIVE
+              </span>
+              <span className="text-[7px] text-on-surface-variant/70 mt-1">{source}</span>
+              <span className="text-[7px] text-on-surface-variant/70">{lastUpdated}</span>
+            </div>
+          )}
+        </div>
+
+        {oceanLoading ? (
+          <div className="flex h-32 flex-col items-center justify-center gap-3 rounded-xl border border-border-glow bg-surface-container-low">
+            <div className="h-5 w-5 rounded-full border-2 border-primary/20 border-t-primary animate-spin" />
+            <span className="text-primary/50 text-[9px] font-mono animate-pulse">[FETCHING OCEAN DATA...]</span>
+          </div>
+        ) : oceanError && !oceanData ? (
+          <div className="flex h-32 flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low text-status-critical">
+            <Zap className="h-4 w-4 mb-2 opacity-50" />
+            <span className="text-[9px] font-mono">SENSOR OFFLINE</span>
+          </div>
+        ) : (
+          <motion.div
+            className="grid grid-cols-2 gap-3"
+            variants={staggerContainer}
+            initial="hidden"
+            animate="visible"
+          >
+            {displayConditions.map((condition, i) => {
+              const Icon = conditionIcons[condition.icon] || Waves;
+              const TrendIcon = condition.trend ? trendIcons[condition.trend] : Minus;
+              return (
+                <motion.div
+                  key={condition.label}
+                  variants={staggerItem}
+                  className="flex flex-col items-center justify-center rounded-xl border border-border-glow bg-surface-container-low p-3"
                 >
-                  {condition.value}
-                  <span className="text-xs text-on-surface-variant ml-0.5">
-                    {condition.unit}
-                  </span>
-                </p>
-                {condition.trend && (
-                  <TrendIcon
-                    className={`mt-1 h-3 w-3 ${
-                      condition.trend === "up"
-                        ? "text-status-warning"
-                        : condition.trend === "down"
-                        ? "text-primary"
-                        : "text-on-surface-variant/50"
-                    }`}
-                  />
-                )}
-              </motion.div>
-            );
-          })}
-        </motion.div>
+                  <Icon className={`mb-1.5 h-5 w-5 ${condition.color}`} />
+                  <p className="font-label-caps text-[9px] text-on-surface-variant mb-0.5">
+                    {condition.label}
+                  </p>
+                  <p
+                    className="text-on-surface text-lg"
+                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                  >
+                    {condition.value}
+                    <span className="text-xs text-on-surface-variant ml-0.5">
+                      {condition.unit}
+                    </span>
+                  </p>
+                  {condition.trend && (
+                    <TrendIcon
+                      className={`mt-1 h-3 w-3 ${
+                        condition.trend === "up"
+                          ? "text-status-warning"
+                          : condition.trend === "down"
+                          ? "text-primary"
+                          : "text-on-surface-variant/50"
+                      }`}
+                    />
+                  )}
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
       </section>
 
       {/* ── Radar Visualization ─────────────────────── */}
