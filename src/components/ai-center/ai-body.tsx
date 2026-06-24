@@ -104,7 +104,7 @@ export function AIBody() {
           <div className="mt-4 border-t border-border-glow pt-3">
             <span className="font-label-caps text-[9px] text-on-surface-variant block mb-1.5">PREDICTION DRIVER</span>
             <p className="text-[10px] text-on-surface-variant leading-snug italic border-l-2 border-primary pl-2">
-              "Elevated SST (+0.8°C) is the dominant risk factor, offset by above-average chlorophyll concentrations supporting fish biomass."
+              &ldquo;Elevated SST (+0.8°C) is the dominant risk factor, offset by above-average chlorophyll concentrations supporting fish biomass.&rdquo;
             </p>
           </div>
         </motion.div>

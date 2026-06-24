@@ -34,10 +34,7 @@ export function KPICard({
   const hasAnimated = useRef(false);
 
   useEffect(() => {
-    if (!numericValue) {
-      setDisplayValue(value);
-      return;
-    }
+    if (numericValue === undefined) return;
 
     const el = cardRef.current;
     if (!el) return;

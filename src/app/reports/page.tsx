@@ -65,7 +65,7 @@ function DemoOverlay({ active, onClose }: { active: boolean; onClose: () => void
   ];
 
   useEffect(() => {
-    if (!active) { setStep(0); return; }
+    if (!active) return;
     const el = document.getElementById(sections[step]?.id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
   }, [active, step]);
@@ -108,7 +108,7 @@ export default function ReportsPage() {
     <div className="min-h-screen bg-surface">
       <Navbar />
       <FloatingParticles />
-      <DemoOverlay active={demoActive} onClose={() => setDemoActive(false)} />
+      {demoActive && <DemoOverlay active={demoActive} onClose={() => setDemoActive(false)} />}
 
       <main className="relative z-10 pt-20 px-4 pb-8 max-w-[1600px] mx-auto space-y-5">
         {/* Title + Demo Button */}
